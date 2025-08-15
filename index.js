@@ -3,10 +3,14 @@ import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { connectToDb } from './src/config/db.js';
-import authRoutes from './src/routes/User.js'; // Assuming you have auth routes in User.js
-import postRoutes from './src/routes/Post.js'; // Assuming you have post routes in Post.js
+
 import fileUpload from "express-fileupload";
 import bodyParser from "body-parser";
+//routs import
+import authRoutes from './src/routes/User.js'; // Assuming you have auth routes in User.js
+import postRoutes from './src/routes/Post.js'; // Assuming you have post routes in Post.js
+import categoryRoutes from "./src/routes/Category.js";
+
 
  dotenv.config();
 
@@ -35,6 +39,7 @@ import bodyParser from "body-parser";
 //Routes
  app.use('/api/auth' , authRoutes );
  app.use("/api/post", postRoutes);
+ app.use('/api/category', categoryRoutes )
 
 
 
