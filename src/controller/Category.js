@@ -43,3 +43,24 @@ if (existinCategory) {
 
 
 };
+
+export const getAllCategory = async (req, res)=>{
+  try{
+    const categories = await CategoryModel.find({});
+     return res.status(200).send({
+      success: true,
+      message: "Categories fetched successfully",
+      categories,
+     });
+
+  } catch (error){
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Error while fetching categories",
+      error,
+    })
+
+  }
+
+}
