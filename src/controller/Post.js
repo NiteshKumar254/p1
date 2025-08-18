@@ -1,45 +1,48 @@
 
-   import cloudinary from "../config/Cloudinary.js";
-   import Post from "../models/Post.js";
-   import slug from "slugify";
+    import cloudinary from "../config/Cloudinary.js";
+import Post from "../models/Post.js";
+import slug from "slugify";
 
-
-   export const createPostController = async (req, res) => {
+// CREATE POST
+export const createPostController = async (req, res) => {
   try {
     const {
       title,
       hotelLocation,
       description,
       category,
-    //   images,
       isAvailable,
-       guest,
-       price,
-        nearArea,
+      guest,
+      price,
+      nearArea,
       facilities,
     } = req.body;
+
     const files = req.files?.images;
-    //validation 
 
+    // validation
     if (
-        // !title || !hotelLocation || !description || !category || !images ||
-        // !guest || !isAvailable || !price || !nearArea || !facilities
-
-         !title || !hotelLocation || !description || !files ||
-        !guest || !isAvailable || !price || !nearArea || !facilities || !category
-      
+      !title ||
+      !hotelLocation ||
+      !description ||
+      !files ||
+      !guest ||
+      !isAvailable ||
+      !price ||
+      !nearArea ||
+      !facilities ||
+      !category
     ) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
     if (!files || files.length !== 3) {
       return res
-        .status(400).json({ 
-            message: "Please upload exactly 3 images." 
-        });
+        .status(400)
+        .json({ message: "Please upload exactly 3 images." });
     }
 
-     // Upload images to Cloudinary
+    // upload images
     const imageUrls = await Promise.all(
       files.map((file) =>
         cloudinary.uploader
@@ -48,7 +51,6 @@
       )
     );
 
-    // Create new post
     const newPost = new Post({
       title,
       hotelLocation,
@@ -66,68 +68,58 @@
     await newPost.save();
 
     return res.status(201).json({
-        message: "Post created successfully",
-        post: newPost,
+      message: "Post created successfully",
+      post: newPost,
     });
-
-}    catch (error) {
+  } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: "Something went wrong" ,
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
 
+// GET SINGLE POST
+export const getPostController = async (req, res) => {
+  try {
+    const post = await Post.findOne({ slug: req.params.slug }).populate(
+      "category"
+    );
+
+    return res.status(200).send({
+      success: true,
+      message: "Post fetched successfully",
+      post,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Error while getting post",
+      error,
     });
   }
 };
 
-export const getPostController = async (req, res) => {
+// GET ALL POSTS
+export const getAllPostsController = async (req, res) => {
+  try {
+    const posts = await Post.find({}).sort({ createdAt: -1 });
 
-   try { 
-
-    const post = await Post.findOne({ slug: req.params.slug})
-    //  .select("images")
-     .populate("category");
-
-     return res.status(200).send({
-        success: true,
-        message: "Post fetched successfully",
-        post,
-     });  
-}   catch (error) {
-      console.log(error);
-      return res.status(500).send({ 
-        success: false,
-        message: "Error while getting post",
-        error,
-     });
-   }
+    return res.status(200).send({
+      success: true,
+      message: "All posts fetched successfully",
+      posts,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Error while getting all posts",
+      error,
+    });
+  }
 };
 
-
-export const getAllPostsController = async(req, res)=>{
-     
-           try {
-            const posts = await Post.find({});
-              // .populate("category")
-              // .sort({ createdAt: -1 }); // Optional: sorts by newest first
-      
-            return res.status(200).send({
-              success: true,
-              message: "All posts fetched successfully",
-              posts,
-            });
-          
-
-     }  catch (error){
-      console.log(error);
-      return res.status(500).send({
-        success: false,
-        message:"Error while getting all posts",
-        error,
-      });
-     }
-};
-
-
-
+// UPDATE POST
 export const updatePostController = async (req, res) => {
   try {
     const { id } = req.params;
@@ -142,35 +134,18 @@ export const updatePostController = async (req, res) => {
       isAvailable,
       price,
     } = req.body;
+
     const files = req.files?.images;
 
-    // Find the existing post
     const post = await Post.findById(id);
     if (!post) {
       return res.status(404).json({ message: "Post not found." });
     }
 
-    // Validate fields (optional for update)
-    if (
-      !title &&
-      !hotelLocation &&
-      !description &&
-      !facilities &&
-      !nearArea &&
-      !category &&
-      !guest &&
-      isAvailable === undefined &&
-      !price &&
-      !files
-    ) {
-      return res.status(400).json({ message: "No fields provided to update." });
-    }
-
-    // Handle image update
-    // let updatedImages = post.images;
-    let uploadImage = post.images;
+    // handle images
+    let updatedImages = post.images;
     if (files && files.length === 3) {
-      // Delete old images from Cloudinary
+      // delete old images
       await Promise.all(
         post.images.map((url) => {
           const publicId = url.split("/").pop().split(".")[0];
@@ -178,7 +153,7 @@ export const updatePostController = async (req, res) => {
         })
       );
 
-      // Upload new images
+      // upload new ones
       updatedImages = await Promise.all(
         files.map((file) =>
           cloudinary.uploader
@@ -192,9 +167,8 @@ export const updatePostController = async (req, res) => {
         .json({ message: "Please upload exactly 3 images." });
     }
 
-    // Update the post
-    // const updatedPost = await Post.findByIdAndUpdate(
-    const updatePost = await Post.findByIdAndUpdate(
+    // update post
+    const updatedPost = await Post.findByIdAndUpdate(
       id,
       {
         ...(title && { title }),
@@ -206,33 +180,32 @@ export const updatePostController = async (req, res) => {
         ...(guest && { guest }),
         ...(isAvailable !== undefined && { isAvailable }),
         ...(price && { price }),
-        // ...(files && { images: updatedImages }),
-          ...(files && { images: uploadImage }),
+        ...(files && { images: updatedImages }),
         ...(title && { slug: slug(title, { lower: true }) }),
-      });
-    //   { new: true }
-    // );
-    await updatePost.save();
+      },
+      { new: true }
+    );
+
     return res.status(200).send({
       success: true,
-      message:"Post updated successfully",
-      updatePost,
-  }); 
-} catch (error) {
+      message: "Post updated successfully",
+      post: updatedPost,
+    });
+  } catch (error) {
     console.error(error);
-   return  res.status(500).send({
-    success: false,
-    message:"Error while updating post",
-    error,
-   })
+    return res.status(500).send({
+      success: false,
+      message: "Error while updating post",
+      error,
+    });
   }
 };
 
+// DELETE POST
 export const deletePostController = async (req, res) => {
   try {
-    // await Post.findByIdAndDelete(req.params.pid);
     await Post.findByIdAndDelete(req.params.id);
-    return  res.status(200).send({
+    return res.status(200).send({
       success: true,
       message: "Post deleted successfully",
     });
@@ -240,25 +213,27 @@ export const deletePostController = async (req, res) => {
     console.log(error);
     return res.status(500).send({
       success: false,
-      message: "Error while deleting product",
+      message: "Error while deleting post",
       error,
     });
   }
 };
 
-   export const getRelatedPostController =  async (req, res) => {
 
-  
+import mongoose from "mongoose";
+
+// GET RELATED POSTS
+export const getRelatedPostController = async (req, res) => {
   try {
     const { pid, cid } = req.params;
+
     const relatedPost = await Post.find({
       category: cid,
-      _id: { $ne: pid },
+      _id: { $ne: new mongoose.Types.ObjectId(pid) }, // ✅ yaha fix
     })
-      // .select("images")
-      //.select("-photos")
       .limit(2)
       .populate("category");
+
     return res.status(200).send({
       success: true,
       message: "Related posts fetched successfully",
@@ -266,11 +241,43 @@ export const deletePostController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-     return res.status(500).send({
+    return res.status(500).send({
       success: false,
-      message: "error while geting related posts",
+      message: "Error while getting related posts",
       error,
     });
   }
 };
-    
+
+export const searchProductController = async (req, res) => {
+
+  try {
+    const {keyword} = req.params;
+    const words = keyword.split(" ");
+    const regexString= words.join("|");
+
+    const results = await Post.find({
+      $or:  [
+        {title : { $regex: keyword, $options: "i"}},
+        {
+          description: {
+            $regex: regexString,
+            $options: "i" ,
+          },
+        },
+
+      ],
+    })
+      .select("title hotelLocation  images  description")
+      // .populate("category");
+      res.json(results);
+
+  }  catch (error){
+    console.log(error);
+    return res.status(500).send({
+      success:false,
+      message: "Error while searching posts",
+      error,
+    });  
+  }
+};
