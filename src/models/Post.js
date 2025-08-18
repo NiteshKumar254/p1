@@ -44,7 +44,7 @@ const postSchema = new mongoose.Schema({
         min:100, 
         max:5000,
     },
-    newArea: {
+    nearArea: {
         type: [String],
         required: true,
     },   

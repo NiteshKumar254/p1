@@ -83,7 +83,7 @@ export const getPostController = async (req, res) => {
    try { 
 
     const post = await Post.findOne({ slug: req.params.slug})
-     .select("images")
+    //  .select("images")
      .populate("category");
 
      return res.status(200).send({
@@ -255,7 +255,7 @@ export const deletePostController = async (req, res) => {
       category: cid,
       _id: { $ne: pid },
     })
-      .select("images")
+      // .select("images")
       //.select("-photos")
       .limit(2)
       .populate("category");
