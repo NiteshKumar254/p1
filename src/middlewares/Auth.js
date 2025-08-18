@@ -39,7 +39,7 @@ import User from '../models/User.js';
     // JWT OR jwt 
     // console.log("Decoded Token Object:", decode);
 
-    if (!decode._id && !decode.id) {
+    if (!decode?._id && !decode?.id) {
       return res
         .status(401)
         .send({ success: false, message: "Token does not contain user ID" });
@@ -59,7 +59,7 @@ import User from '../models/User.js';
     //Admin Middleware
 export const isAdmin = async (req, res, next) => {
     try {
-        const userId= req.user.id || req.user.id;
+        const userId= req.user?.id || req.user?.id;
         // console.log("user id from token : " , userId);
         if (!userId){
             return res.status(401)

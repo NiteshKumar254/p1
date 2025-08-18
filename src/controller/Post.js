@@ -83,7 +83,7 @@ export const getPostController = async (req, res) => {
    try { 
 
     const post = await Post.findOne({ slug: req.params.slug})
-     .select("-images")
+     .select("images")
      .populate("category");
 
      return res.status(200).send({
@@ -246,6 +246,31 @@ export const deletePostController = async (req, res) => {
   }
 };
 
-   
+   export const getRelatedPostController =  async (req, res) => {
 
+  
+  try {
+    const { pid, cid } = req.params;
+    const relatedPost = await Post.find({
+      category: cid,
+      _id: { $ne: pid },
+    })
+      .select("images")
+      //.select("-photos")
+      .limit(2)
+      .populate("category");
+    return res.status(200).send({
+      success: true,
+      message: "Related posts fetched successfully",
+      relatedPost,
+    });
+  } catch (error) {
+    console.log(error);
+     return res.status(500).send({
+      success: false,
+      message: "error while geting related posts",
+      error,
+    });
+  }
+};
     

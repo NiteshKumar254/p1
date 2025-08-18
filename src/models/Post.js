@@ -61,9 +61,12 @@ const postSchema = new mongoose.Schema({
 
 });
 
-function arrayLimit(val) {
-    return val.length === 3; 
-}
+// function arrayLimit(val) {
+//     return val.length === 3; 
+// }
 
+function arrayLimit(val) {
+    return val.length >= 3; 
+}
  export default mongoose.model("Post", postSchema);
    
